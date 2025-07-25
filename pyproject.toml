@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vetis_pydantic_types"
+description = "Типы данных ВетИС.API в формате Pydantic"
+requires-python = ">3.9.1,<4"
+readme = "README.md"
+dynamic = [
+    "version",
+]
+authors = [
+    {name = "Alexander Shatilow", email = "shatilow2001@mail.ru"},
+]
+dependencies = [
+    "pydantic>=2.10.4,<3.0.0",
+    "pydantic_core==2.33.2",
+    "black==24.10.0",
+    # пакет для создания cli
+    "click==8.2.1",
+    # пакеты для парсинга xsd,wsdl в формат pydantic
+    "xsdata[cli,soap]==25.7",
+    "xsdata_pydantic==24.5",
+]
+
+[project.urls]
+#Homepage = "https://github.com/yourusername/my-package"
+#Repository = "https://github.com/yourusername/my-package"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+src_paths = ["src/vetis_pydantic_types",]
+force_grid_wrap = 1
+include_trailing_comma = 1
+sections = ['FUTURE', 'STDLIB', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLDER']
+line_length = 1
+combine_as_imports = 1
+lines_after_imports = 2
+lines_between_types = 1
