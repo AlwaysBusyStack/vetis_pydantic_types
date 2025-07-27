@@ -28,6 +28,9 @@ dependencies = [
 #Homepage = "https://github.com/yourusername/my-package"
 #Repository = "https://github.com/yourusername/my-package"
 
+[project.scripts]
+generate_vetis_types = "vetis_pydantic_types.cli:generate_vetis_types"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

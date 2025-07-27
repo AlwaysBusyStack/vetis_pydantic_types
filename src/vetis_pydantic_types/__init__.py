@@ -1,4 +1,6 @@
+from vetis_pydantic_types.version_manager import get_current_version
+
 # версия пакета - дата, т.к. содержание типов очень сильно зависит
 # от даты их генерации. Версия строится по формату:
 # год.месяц.день.fix_number
-__version__ = '2025.07.26.01'
+__version__ = get_current_version()

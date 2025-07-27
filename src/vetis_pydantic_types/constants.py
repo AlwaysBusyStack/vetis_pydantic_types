@@ -29,3 +29,5 @@ REGISTRY_SPECIFIC_NS_PREFIXES = {
     'tns': 'http://api.vetrf.ru/schema/cdm/application/service',
 }
 REGISTRY_PREFIXES = COMMON_NS_PREFIXES | REGISTRY_SPECIFIC_NS_PREFIXES
+
+VERSION_FILE = ROOT_DIR / 'version.json'

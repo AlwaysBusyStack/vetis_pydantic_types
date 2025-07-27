@@ -32,6 +32,8 @@
     <Substitution type="package" search="http://schemas.xmlsoap.org/wsdl/soap12/" replace="soap12"/>
     <Substitution type="package" search="http://schemas.xmlsoap.org/soap/envelope/" replace="soapenv"/>
     <Substitution type="package" search="http://schemas.xmlsoap.org/soap/encoding/" replace="soapenc"/>
+    <!-- Замена постфикса вложенных типов на постфикс InternalType -->
+    <Substitution type="class" search="1$" replace="InternalType"/>
   </Substitutions>
   <Extensions>
     <!-- Расширения, позволяющие наследовать созданные типы от внутренних классов -->
