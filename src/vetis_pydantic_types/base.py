@@ -1,6 +1,8 @@
 from abc import ABC
 from enum import Enum
-from typing import Optional
+from typing import Optional, ClassVar, Dict
+
+from pydantic import BaseModel
 
 
 class VetisCircuitEnum(str, Enum):
@@ -10,12 +12,34 @@ class VetisCircuitEnum(str, Enum):
     PRODUCTIVE = 'production'
 
 
+class AbstractOperation(ABC):
+    style: ClassVar[str]
+    location: ClassVar[str]
+    transport: ClassVar[str]
+    soap_action: ClassVar[str]
+    input: ClassVar[BaseModel]
+    output: ClassVar[BaseModel]
+
+
+class SubmitApplicationRequestOperation(AbstractOperation):
+    """Операция для отправки заявки в заявочную систему."""
+
+
+class ReceiveApplicationResultOperation(AbstractOperation):
+    """Операция для получения результата по заявке в заявочной системе."""
+
+
+class GetDataFromDictionaryServiceOperation(AbstractOperation):
+    """Операция для получения данных в справочной системе."""
+
+
 class AbstractVetisService(ABC):
     def __init__(
         self,
         name: str,
         version: str,
         circuit: VetisCircuitEnum,
+        ns_map: Dict[str, str],
         wsdl_uri: str,
         api_uri: str,
         api_port: Optional[int] = None,
@@ -25,6 +49,7 @@ class AbstractVetisService(ABC):
         self.name = name
         self.version = version
         self.circuit = circuit
+        self.ns_map = ns_map
         self.wsdl_uri = wsdl_uri
         self.api_uri = api_uri
         self.api_port = api_port
@@ -37,14 +62,6 @@ class AbstractVetisService(ABC):
             url = f'{url}:{self.api_port}'
 
         return url
-
-    @property
-    def wsdl_types(self):
-        """Импортирует и кэширует в инстансе модуль с типами и операциями,
-        определенными в WSDL.
-        """
-
-        # TODO:
 
 
 class VetisAMSService(AbstractVetisService):

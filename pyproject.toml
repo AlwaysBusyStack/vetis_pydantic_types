@@ -34,6 +34,10 @@ where = ["src"]
 [tool.setuptools.package-dir]
 "" = "src"
 
+# регистрация расширения функционала xsdata
+[project.entry-points."xsdata.plugins.cli"]
+xsdata_attrs = "vetis_pydantic_types.xsdata_ext.hooks.cli"
+
 [tool.isort]
 profile = "black"
 multi_line_output = 3

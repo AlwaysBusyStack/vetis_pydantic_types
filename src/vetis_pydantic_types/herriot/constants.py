@@ -1,3 +1,5 @@
+from vetis_pydantic_types.constants import AMS_PREFIXES, REGISTRY_PREFIXES
+
 PLATFORM_URL = 'http://api.vetrf.ru/schema/platform'
 
 VERSION = '1.0'
@@ -14,8 +16,27 @@ PROD_API_URI = 'https://api.vetrf.ru'
 PROD_API_PORT = None
 
 AMS_SERVICE_ID = f'herriot.service:1.0'
-AMS_VERBOSE_NAME = 'Подсистема обработки заявок компонента Меркурий'
+AMS_VERBOSE_NAME = 'Подсистема обработки заявок компонента Хорриот'
+AMS_NS_PREFIXES = AMS_PREFIXES
+
 DICTIONARY_VERBOSE_NAME = 'Сервис получения справочной информации'
+DICTIONARY_NS_PREFIXES = REGISTRY_PREFIXES | {
+    'tns': 'http://api.vetrf.ru/schema/cdm/registry/dictionary/service/v3',
+}
+
 ENTERPRISE_VERBOSE_NAME = 'Сервис получения реестра хозяйствующих субъектов и предприятий (Цербер)'
+ENTERPRISE_NS_PREFIXES = REGISTRY_PREFIXES | {
+    'tns': 'http://api.vetrf.ru/schema/cdm/registry/enterprise/service/v3',
+}
+
 IKAR_VERBOSE_NAME = 'Сервис получения адресной справочной информации (Икар)'
+IKAR_NS_PREFIXES = REGISTRY_PREFIXES | {
+    'tns': 'http://api.vetrf.ru/schema/cdm/registry/ikar/service/v3',
+}
+
 PRODUCT_VERBOSE_NAME = 'Сервис получения реестра категорий продукции'
+PRODUCT_NS_PREFIXES = REGISTRY_PREFIXES | {
+    'tns': 'http://api.vetrf.ru/schema/cdm/registry/r13n/service/v3',
+}
+
+SPLIT_CIRCUIT_TYPES = True

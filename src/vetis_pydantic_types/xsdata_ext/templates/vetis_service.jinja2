@@ -1,0 +1,10 @@
+{# Расширение стандартного шаблона для генерации сервиса,  #}
+{# для добавления наследуемых классов в него через расширения #}
+{# в конфигурации .xsdata.xml #}
+{% set class_name = obj.name|class_name -%}
+{% set base_classes = obj | class_bases(class_name) | join(', ')-%}
+
+class {{ class_name }}{{"({})".format(base_classes) if base_classes }}:
+{%- for attr in obj.attrs %}
+    {{ attr.name|field_name(obj.name) }} = {{ attr|constant_value }}
+{%- endfor -%}
