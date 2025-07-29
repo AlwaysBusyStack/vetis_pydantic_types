@@ -41,6 +41,10 @@ where = ["src"]
 [project.entry-points."xsdata.plugins.cli"]
 xsdata_attrs = "vetis_pydantic_types.xsdata_ext.hooks.cli"
 
+# исправление ошибки при попытке получить JSON-схему сгенерированных моделей
+[project.entry-points."xsdata.plugins.class_types"]
+vetis_pydantic_types = "vetis_pydantic_types.xsdata_ext.class_type"
+
 [tool.isort]
 profile = "black"
 multi_line_output = 3
