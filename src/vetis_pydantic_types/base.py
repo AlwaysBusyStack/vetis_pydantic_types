@@ -1,6 +1,6 @@
 from abc import ABC
 from enum import Enum
-from typing import Optional, ClassVar, Dict
+from typing import Optional, ClassVar, Dict, Type, Tuple
 
 from pydantic import BaseModel
 
@@ -12,7 +12,9 @@ class VetisCircuitEnum(str, Enum):
     PRODUCTIVE = 'production'
 
 
-class AbstractOperation(ABC):
+class BaseOperation:
+    """Операция SOAP-сервиса."""
+
     style: ClassVar[str]
     location: ClassVar[str]
     transport: ClassVar[str]
@@ -21,16 +23,63 @@ class AbstractOperation(ABC):
     output: ClassVar[BaseModel]
 
 
-class SubmitApplicationRequestOperation(AbstractOperation):
+class SubmitApplicationRequestOperation(BaseOperation):
     """Операция для отправки заявки в заявочную систему."""
 
 
-class ReceiveApplicationResultOperation(AbstractOperation):
+class ReceiveApplicationResultOperation(BaseOperation):
     """Операция для получения результата по заявке в заявочной системе."""
 
 
-class GetDataFromDictionaryServiceOperation(AbstractOperation):
+class GetDataFromDictionaryServiceOperation(BaseOperation):
     """Операция для получения данных в справочной системе."""
+
+
+class BaseApplication:
+    """Базовый класс для ответа/запроса заявок."""
+
+    @staticmethod
+    def _get_doc_str_by(bases: Tuple[Type, ...]) -> Optional[str]:
+        """Возвращает докстринг к ответу/заявке.
+
+        Т.к. в xsd-схемах содержится довольно специфичное описание,
+        настоящий докстринг может располагаться в базовом классе.
+        """
+
+        result = None
+
+        for base in bases:
+            if not issubclass(base, BaseApplication) and (doc_str := base.__doc__):
+                # пропускаем докстринг pydantic.BaseModel
+                if base is not BaseModel:
+                    result = doc_str
+                    break
+
+        return result
+
+
+class ApplicationRequest(BaseApplication):
+    """Заявка."""
+
+    def __init_subclass__(cls, **kwargs):
+        """Динамически модифицирует докстринг класса (если он пуст)
+        докстрингом базового класса.
+        """
+        super().__init_subclass__(**kwargs)
+
+        cls.__doc__ = cls.__doc__ or cls._get_doc_str_by(cls.__bases__)
+
+
+class ApplicationResponse(BaseApplication):
+    """Ответ по заявке."""
+
+    def __init_subclass__(cls, **kwargs):
+        """Динамически модифицирует докстринг класса (если он пуст)
+        докстрингом базового класса.
+        """
+        super().__init_subclass__(**kwargs)
+
+        cls.__doc__ = cls.__doc__ or cls._get_doc_str_by(cls.__bases__)
 
 
 class AbstractVetisService(ABC):

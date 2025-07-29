@@ -33,5 +33,9 @@
     <Extension type="class" class="^ApplicationManagementServicePortTypeReceiveApplicationResult$" import="vetis_pydantic_types.base.ReceiveApplicationResultOperation" prepend="true" applyIfDerived="true"/>
     <!-- Правила на модификацию операций по получению данных из справочных сервисов -->
     <Extension type="class" class="^(?!.*(?:Input|Output|ApplicationManagement)).*ServicePortType.*$" import="vetis_pydantic_types.base.GetDataFromDictionaryServiceOperation" prepend="true" applyIfDerived="true"/>
+    <!-- Правила на модификацию типов для отправки заявок -->
+    <Extension type="class" class="^(?!.*Application).*Request$" import="vetis_pydantic_types.base.ApplicationRequest" prepend="true" applyIfDerived="true"/>
+    <!-- Правила на модификацию типов для получения результатов заявок -->
+    <Extension type="class" class=".*Response$" import="vetis_pydantic_types.base.ApplicationResponse" prepend="true" applyIfDerived="true"/>
   </Extensions>
 </Config>
