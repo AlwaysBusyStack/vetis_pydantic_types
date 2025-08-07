@@ -1,0 +1,26 @@
+{% include "enum.jinja2" %}
+
+{%- if obj.attrs -%}
+{%- set first_attr = obj.attrs[0].name | constant_name(obj.name) -%}
+{% raw %}
+
+    __descriptions = {
+{% endraw %}
+{%- for attr in obj.attrs %}
+        {{ attr.name | constant_name(obj.name) }}: {{ attr.help | clean_docstring(false) | format_string(indent=0, key=member_name) }},
+{%- endfor %}
+{% raw %}
+    }
+
+    @property
+    def verbose_name(self):
+{% endraw %}
+        """Получение описания участника перечисления.
+
+        Использование:
+        {{ obj.name }}.{{ first_attr }}.verbose_name
+        """
+{% raw %}
+        return type(self).__descriptions.get(self.value)
+{% endraw %}
+{%- endif %}

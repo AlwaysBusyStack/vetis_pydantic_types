@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from typing import Optional, Type, Dict, List, TypeVar
+from typing import Optional, Type, Dict, List, TypeVar, ClassVar, Union, Coroutine, Any
 import asyncio
 import xml.etree.ElementTree as ET
 import requests
@@ -13,7 +13,7 @@ from xsdata_pydantic.bindings import XmlParser, XmlSerializer, XmlContext
 from vetis_pydantic_types.base.exceptions import VetisFaultError, VetisBusinessError
 from vetis_pydantic_types.base.service_base import BaseVetisService, VetisAMSService
 from vetis_pydantic_types.base.operations_base import (
-    RegistryOperation
+    RegistryOperation, BaseOperation
 )
 from vetis_pydantic_types.base.application_base import ApplicationRequest, ApplicationResponse
 
@@ -67,7 +67,7 @@ class VetisClient:
         if fault := getattr(response, 'fault', None):
             raise VetisFaultError(f"SOAP Fault: {fault}")
 
-    def send(
+    def sync_send(
         self,
         uri: str,
         payload: BaseModel,
@@ -138,6 +138,20 @@ class VetisClient:
         self._check_fault(result)
         return result
 
+    def send(
+        self,
+        uri: str,
+        payload: BaseModel,
+        headers: Dict[str, str],
+        output_type: Type[BaseModel],
+    ) -> Union[ApplicationResponse, Coroutine[Any, Any, ApplicationResponse]]:
+        if asyncio.get_event_loop().is_running():
+            result = self.async_send(uri, payload, headers, output_type)
+        else:
+            result = self.sync_send(uri, payload, headers, output_type)
+
+        return result
+
 
 class VetisAMSClient(VetisClient):
     """Клиент для заявочной системы."""
@@ -152,6 +166,8 @@ class VetisAMSClient(VetisClient):
         service: VetisAMSService,
         auth: HTTPBasicAuth,
         api_key: str,
+        submit_operation_type: Type[BaseOperation],
+        receive_operation_type: Type[BaseOperation],
         **kwargs,
     ):
         super().__init__(service, auth, **kwargs)
@@ -159,15 +175,15 @@ class VetisAMSClient(VetisClient):
         self.api_key = api_key
         self.auth = auth
 
-        self.submit_operation = self.service.submit_operation_type(self)
-        self.receive_operation = self.service.receive_operation_type(self)
+        self.submit_operation = submit_operation_type(self)
+        self.receive_operation = receive_operation_type(self)
 
     def _check_business_errors(self, application_result: BaseModel) -> None:
         """Проверяет бизнес-ошибки."""
         if errors := getattr(application_result, 'errors', None):
             raise VetisBusinessError(f"Business errors: {errors}")
 
-    def submit_application(
+    def sync_submit_application(
         self,
         application: ApplicationRequest,
         issuer_id: str,
@@ -184,7 +200,7 @@ class VetisAMSClient(VetisClient):
             },
         }
 
-        return self.submit_operation.send(request_data)
+        return self.submit_operation.sync_send(request_data)
 
     async def async_submit_application(
         self,
@@ -206,14 +222,14 @@ class VetisAMSClient(VetisClient):
 
         return response
 
-    def receive_application_result(self, application_id: str, issuer_id: str) -> BaseModel:
+    def sync_receive_application_result(self, application_id: str, issuer_id: str) -> BaseModel:
         """Получает результат заявки."""
         request_data = {
             'api_key': self.api_key,
             'issuer_id': issuer_id,
             'application_id': application_id,
         }
-        response = self.receive_operation.send(request_data)
+        response = self.receive_operation.sync_send(request_data)
 
         return response
 
@@ -229,7 +245,7 @@ class VetisAMSClient(VetisClient):
 
         return response
 
-    def submit_and_wait_for_result(
+    def sync_submit_and_wait_for_result(
         self,
         application: ApplicationRequest,
         issuer_id: str,
@@ -237,12 +253,12 @@ class VetisAMSClient(VetisClient):
         issue_date: Optional[XmlDateTime] = None,
     ) -> Optional[ApplicationResponse]:
         """Отправляет заявку и ждёт результат."""
-        app_id = self.submit_application(
+        app_id = self.sync_submit_application(
             application, issuer_id, issue_date
         ).application.application_id
 
         while True:
-            result = self.receive_application_result(app_id, issuer_id)
+            result = self.sync_receive_application_result(app_id, issuer_id)
 
             if result.application.status.value in self.finished_application_statuses:
                 break
@@ -279,44 +295,33 @@ class VetisAMSClient(VetisClient):
 
         return getattr(result.result, 'any_element', None)
 
+    def submit_and_wait_for_result(
+        self,
+        application: ApplicationRequest,
+        issuer_id: str,
+        receive_timeout: int = 1000,
+        issue_date: Optional[XmlDateTime] = None,
+    ) -> Union[
+        Optional[ApplicationResponse],
+        Coroutine[Any, Any, Optional[ApplicationResponse]],
+    ]:
+        if asyncio.get_event_loop().is_running():
+            result = self.async_submit_and_wait_for_result(
+                application,
+                issuer_id,
+                receive_timeout,
+                issue_date,
+            )
+        else:
+            result = self.sync_submit_and_wait_for_result(
+                application,
+                issuer_id,
+                receive_timeout,
+                issue_date,
+            )
+
+        return result
+
 
 class VetisRegistryClient(VetisClient):
     """Клиент для справочной системы."""
-
-    def __init__(
-        self,
-        service: BaseVetisService,
-        auth: HTTPBasicAuth,
-        operations: List[Type[RegistryOperation]],
-        **kwargs,
-    ):
-        super().__init__(service, auth, **kwargs)
-
-        self.operations = [
-            op(self)
-            for op in operations
-        ]
-
-    def send(
-        self,
-        uri: str,
-        payload: ApplicationRequest,
-        headers: Dict[str, str],
-        output_type: Type[BaseModel],
-    ) -> ApplicationResponse:
-        """Синхронный запрос."""
-        result = super().send(uri, payload, headers, output_type)
-
-        return result
-
-    async def async_send(
-        self,
-        uri: str,
-        payload: ApplicationRequest,
-        headers: Dict[str, str],
-        output_type: Type[BaseModel],
-    ) -> ApplicationResponse:
-        """Асинхронный запрос."""
-        result = await super().async_send(uri, payload, headers, output_type)
-
-        return result

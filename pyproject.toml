@@ -17,11 +17,11 @@ dependencies = [
     "pydantic>=2.10.4,<3.0.0",
     "pydantic_core==2.33.2",
     "black==24.10.0",
-    # пакет для создания cli
-    "click==8.2.1",
     # пакеты для парсинга xsd,wsdl в формат pydantic
     "xsdata[cli,soap]==25.7",
     "xsdata_pydantic==24.5",
+    # асинхронный HTTP-клиент
+    "httpx==0.28.1",
 ]
 
 [project.urls]

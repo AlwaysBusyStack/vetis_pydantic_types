@@ -1,4 +1,5 @@
-from typing import ClassVar, Type, Optional, Tuple, Union, Dict, Any
+import asyncio
+from typing import ClassVar, Type, Optional, Tuple, Union, Dict, Any, Coroutine, Awaitable
 
 from pydantic import BaseModel
 from xsdata_pydantic.fields import field, FieldInfo
@@ -71,8 +72,8 @@ class BaseOperation:
         self,
         request: Union[ApplicationRequest, Dict[str, Any]],
         **headers,
-    ) -> BaseModel:
-        request_output = self.client.send(
+    ) -> Union[ApplicationResponse, Coroutine[Any, Any, ApplicationResponse]]:
+        params = dict(
             uri=self.real_location,
             payload=self.input(
                 body={
@@ -87,29 +88,18 @@ class BaseOperation:
             output_type=self.output,
         )
 
-        return getattr(request_output.body, self.output_info[0])
+        if asyncio.get_event_loop().is_running():
+            async def coro() -> ApplicationResponse:
+                send_result = await self.client.async_send(**params)
+                return getattr(send_result.body, self.output_info[0])
 
-    async def async_send(
-        self,
-        request: Union[ApplicationRequest, Dict[str, Any]],
-        **headers,
-    ) -> ApplicationResponse:
-        request_output = await self.client.async_send(
-            uri=self.real_location,
-            payload=self.input(
-                body={
-                    self.input_info[0]: request,
-                },
-            ),
-            headers={
-                'content-type': 'text/xml',
-                'SOAPAction': self.soap_action,
-                **headers,
-            },
-            output_type=self.output,
-        )
+            result = coro()
+        else:
+            result = self.client.sync_send(**params)
+            result = getattr(result.body, self.output_info[0])
 
-        return getattr(request_output.body, self.output_info[0])
+        return result
+
 
 
 class SubmitApplicationRequestOperation(BaseOperation):

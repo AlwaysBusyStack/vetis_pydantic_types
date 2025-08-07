@@ -27,7 +27,7 @@ def field(
     ограничений в полях схем.
     """
 
-    for xsdata_key, pydantic_key in xsdata_to_pydantic_restriction_keys_map.keys():
+    for xsdata_key, pydantic_key in xsdata_to_pydantic_restriction_keys_map.items():
         if metadata_value := metadata.get(xsdata_key):
             kwargs.setdefault(pydantic_key, metadata_value)
 
