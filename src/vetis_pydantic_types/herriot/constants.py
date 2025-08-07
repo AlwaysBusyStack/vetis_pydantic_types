@@ -2,6 +2,7 @@ from vetis_pydantic_types.constants import AMS_PREFIXES, REGISTRY_PREFIXES
 
 PLATFORM_URL = 'http://api.vetrf.ru/schema/platform'
 
+COMPONENT_NAME = __file__.rsplit('/', maxsplit=2)[-2]
 VERSION = '1.0'
 VERSION_BETA = f'v{VERSION}b'
 TEST_VERSION = f'{VERSION_BETA}-20250203'
@@ -14,6 +15,11 @@ TEST_API_URI = 'https://api2.vetrf.ru'
 TEST_API_PORT = 8002
 PROD_API_URI = 'https://api.vetrf.ru'
 PROD_API_PORT = None
+
+HERRIOT_SPECIFIC_NS_PREFIXES = {
+    # Префикс неймспейсов специфичных прикладных типов Хорриот
+    'cl': 'http://api.vetrf.ru/schema/cdm/codelist/v2',
+}
 
 AMS_SERVICE_ID = f'herriot.service:1.0'
 AMS_VERBOSE_NAME = 'Подсистема обработки заявок компонента Хорриот'
