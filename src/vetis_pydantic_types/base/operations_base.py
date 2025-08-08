@@ -70,7 +70,7 @@ class BaseOperation:
 
     def send(
         self,
-        request: Union[ApplicationRequest, Dict[str, Any]],
+        request: ApplicationRequest,
         **headers,
     ) -> Union[ApplicationResponse, Coroutine[Any, Any, ApplicationResponse]]:
         params = dict(

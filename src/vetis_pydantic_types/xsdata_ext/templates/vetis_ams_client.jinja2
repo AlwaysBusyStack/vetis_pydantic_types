@@ -1,0 +1,97 @@
+class {{ class_name }}(VetisAMSClient):
+{%- if help %}
+{{ class_help | indent(4, first=True) }}
+{%- endif %}
+
+    def __init__(
+        self,
+        circuit: VetisCircuitEnum,
+        api_key: str,
+        auth: HTTPBasicAuth,
+        timeout: Optional[int] = None,
+        receive_timeout: Optional[int] = None,
+    ) -> None:
+        """Инициализация клиента.
+
+        Args:
+            circuit: Целевой контур
+            api_key: API ключ для доступа к сервису
+            auth: Авторизационные данные для аутентификации в системе
+            timeout: Таймаут запроса в секундах
+            receive_timeout: Таймаут ожидания результата в секундах
+        """
+        service = (
+            {{ test_service_name }}
+            if circuit == VetisCircuitEnum.TEST
+            else {{ production_service_name }}
+        )
+
+        super().__init__(
+            service=service,
+            api_key=api_key,
+            auth=auth,
+            submit_operation_type=(
+                {{ pilot_module_name }}ApplicationManagementServicePortTypeSubmitApplicationRequest
+                {% raw %}
+                if circuit == VetisCircuitEnum.TEST
+                {% endraw %}
+                else {{ product_module_name }}ApplicationManagementServicePortTypeSubmitApplicationRequest
+            ),
+            receive_operation_type=(
+                {{ pilot_module_name }}ApplicationManagementServicePortTypeReceiveApplicationResult
+                {% raw %}
+                if circuit == VetisCircuitEnum.TEST
+                {% endraw %}
+                else {{ product_module_name }}ApplicationManagementServicePortTypeReceiveApplicationResult
+            ),
+            timeout=timeout,
+            receive_timeout=receive_timeout,
+        )
+
+        self.circuit = circuit
+
+    def __repr__(self) -> str:
+        """Строковое представление клиента."""
+        return f"{type(self).__name__}(circuit={self.circuit.value})"
+
+    {%- for operation in operations %}
+
+    def {{ operation.name | function_name }}(
+        self,
+        data: {{ operation.request_type }},
+        issuer_id: str,
+        issue_date: Optional[XmlDateTime] = None,
+        receive_timeout: Optional[int] = None,
+        **headers: Any,
+    ) -> Union[
+        {{ operation.response_type }},
+        Coroutine[Any, Any, {{ operation.response_type }}],
+    ]:
+        """
+        {{ operation.description }}
+
+        Args:
+            data: Данные заявки для операции {{ operation.name }}
+            issuer_id: Идентификатор инициатора заявки
+            issue_date: Дата формирования заявки (по умолчанию текущая дата/время)
+            receive_timeout: Таймаут ожидания результата в секундах
+            **headers: Дополнительные заголовки для включения в запрос
+
+        Returns:
+            Данные ответа или корутина (в случае вызова функции
+            из асинхронного контекста), которая возвращает данные ответа
+
+        Raises:
+            VetisFaultError: Ошибка уровня SOAP-сервиса
+            VetisUnauthorizedError: Авторизационные данные неверны
+            requests.HTTPError: Ошибка HTTP при синхронном запросе
+            httpx.HTTPStatusError: Ошибка HTTP при асинхронном запросе
+        """
+        return self.submit_and_wait_for_result(
+            application=data,
+            issuer_id=issuer_id,
+            issue_date=issue_date,
+            receive_timeout=receive_timeout,
+            **headers,
+        )
+    {%- endfor %}

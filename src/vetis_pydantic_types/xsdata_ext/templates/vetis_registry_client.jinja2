@@ -1,0 +1,80 @@
+class {{ class_name }}(VetisRegistryClient):
+{%- if help %}
+{{ class_help | indent(4, first=True) }}
+{%- endif %}
+
+    def __init__(
+        self,
+        circuit: VetisCircuitEnum,
+        auth: HTTPBasicAuth,
+        timeout: Optional[int] = None,
+    ) -> None:
+        """Инициализация клиента.
+
+        Args:
+            circuit: Целевой контур
+            auth: Авторизационные данные для аутентификации в системе
+            timeout: Таймаут запроса в секундах
+        """
+        # Определяем сервис на основе контура
+        service = (
+            {{ test_service_name }}
+            if circuit == VetisCircuitEnum.TEST
+            else {{ production_service_name }}
+        )
+
+        super().__init__(
+            service=service,
+            auth=auth,
+            timeout=timeout,
+        )
+
+        self.circuit = circuit
+
+        # Инициализируем операции на основе контура
+        {%- for operation in operations %}
+        self.{{ operation.name | operation_name }} = (
+            {{ pilot_module_name }}.{{ operation.name }}
+            {% raw %}
+            if self.circuit == VetisCircuitEnum.TEST
+            {% endraw %}
+            else {{ product_module_name }}.{{ operation.name }}
+        )
+        {%- endfor %}
+
+    def __repr__(self) -> str:
+        """Строковое представление клиента."""
+        return f"{type(self).__name__}(circuit={self.circuit.value})"
+
+    {%- for operation in operations %}
+
+    def {{ operation.name | function_name }}(
+        self,
+        data: {{ operation.request_type }},
+        **headers: Any,
+    ) -> Union[
+        {{ operation.response_type }},
+        Coroutine[Any, Any, {{ operation.response_type }}],
+    ]:
+        """
+        {{ operation.description }}
+
+        Args:
+            data: Данные запроса для операции {{ operation.name }}
+            **headers: Дополнительные заголовки для включения в запрос
+
+        Returns:
+            Данные ответа или корутина (в случае вызова функции
+            из асинхронного контекста), которая возвращает данные ответа
+
+        Raises:
+            VetisFaultError: Ошибка уровня SOAP-сервиса
+            VetisUnauthorizedError: Авторизационные данные неверны
+            requests.HTTPError: Ошибка HTTP при синхронном запросе
+            httpx.HTTPStatusError: Ошибка HTTP при асинхронном запросе
+        """
+        return self.{{ operation.name | operation_name }}(self).send(
+            request=data,
+            **headers,
+        )
+    {%- endfor %}

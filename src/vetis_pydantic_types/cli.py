@@ -16,6 +16,37 @@ from vetis_pydantic_types.constants import XSDATA_CONFIG_FILE, TYPES_PACKAGE, TE
 from vetis_pydantic_types.version_manager import update_version_with_vetis_type_changes
 
 
+MERCURY_SERVICES = (
+    mercury_services.dictionary_productive_service,
+    mercury_services.dictionary_test_service,
+    mercury_services.enterprise_productive_service,
+    mercury_services.enterprise_test_service,
+    mercury_services.ikar_productive_service,
+    mercury_services.ikar_test_service,
+    mercury_services.product_productive_service,
+    mercury_services.product_test_service,
+    mercury_services.regionalization_productive_service,
+    mercury_services.regionalization_test_service,
+    mercury_services.ams_productive_service,
+    mercury_services.ams_test_service,
+)
+HERRIOT_SERVICES = (
+    herriot_services.dictionary_productive_service,
+    herriot_services.dictionary_test_service,
+    herriot_services.enterprise_productive_service,
+    herriot_services.enterprise_test_service,
+    herriot_services.ikar_productive_service,
+    herriot_services.ikar_test_service,
+    herriot_services.product_productive_service,
+    herriot_services.product_test_service,
+    herriot_services.ams_productive_service,
+    herriot_services.ams_test_service,
+)
+
+def generate_clients():
+
+
+
 @click.command()
 @click.version_option(version=__version__)
 def generate_vetis_types():
@@ -58,20 +89,7 @@ def generate_vetis_types():
     if types_package.exists() and types_package.is_dir():
         shutil.rmtree(str(types_package.resolve()))
 
-    for mercury_service in (
-        mercury_services.dictionary_productive_service,
-        mercury_services.dictionary_test_service,
-        mercury_services.enterprise_productive_service,
-        mercury_services.enterprise_test_service,
-        mercury_services.ikar_productive_service,
-        mercury_services.ikar_test_service,
-        mercury_services.product_productive_service,
-        mercury_services.product_test_service,
-        mercury_services.regionalization_productive_service,
-        mercury_services.regionalization_test_service,
-        mercury_services.ams_productive_service,
-        mercury_services.ams_test_service,
-    ):
+    for mercury_service in MERCURY_SERVICES:
         package_name = get_package_name(
             mercury_services.__package__,
             mercury_service,
@@ -83,19 +101,12 @@ def generate_vetis_types():
     if types_package.exists() and types_package.is_dir():
         shutil.rmtree(str(types_package.resolve()))
 
-    for herriot_service in (
-        herriot_services.dictionary_productive_service,
-        herriot_services.dictionary_test_service,
-        herriot_services.enterprise_productive_service,
-        herriot_services.enterprise_test_service,
-        herriot_services.ikar_productive_service,
-        herriot_services.ikar_test_service,
-        herriot_services.product_productive_service,
-        herriot_services.product_test_service,
-        herriot_services.ams_productive_service,
-        herriot_services.ams_test_service,
-    ):
-        package_name = get_package_name(herriot_services.__package__, herriot_service, herriot_constants)
+    for herriot_service in HERRIOT_SERVICES:
+        package_name = get_package_name(
+            herriot_services.__package__,
+            herriot_service,
+            herriot_constants.SPLIT_CIRCUIT_TYPES,
+        )
         generate_pydantic_types(herriot_service.wsdl_uri, package_name)
 
     update_version_with_vetis_type_changes(date.today())
