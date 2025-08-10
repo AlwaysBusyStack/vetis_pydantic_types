@@ -1,6 +1,8 @@
 class {{ class_name }}(VetisRegistryClient):
-{%- if help %}
-{{ class_help | indent(4, first=True) }}
+{%- if class_help %}
+
+{{ class_help | indent(4, first=True) }}{% raw %}
+{% endraw %}
 {%- endif %}
 
     def __init__(
@@ -33,25 +35,27 @@ class {{ class_name }}(VetisRegistryClient):
 
         # Инициализируем операции на основе контура
         {%- for operation in operations %}
+
         self.{{ operation.name | operation_name }} = (
             {{ pilot_module_name }}.{{ operation.name }}
-            {% raw %}
             if self.circuit == VetisCircuitEnum.TEST
-            {% endraw %}
             else {{ product_module_name }}.{{ operation.name }}
         )
         {%- endfor %}
+
 
     def __repr__(self) -> str:
         """Строковое представление клиента."""
         return f"{type(self).__name__}(circuit={self.circuit.value})"
 
+
     {%- for operation in operations %}
+
 
     def {{ operation.name | function_name }}(
         self,
         data: {{ operation.request_type }},
-        **headers: Any,
+        **headers: Dict[str, str],
     ) -> Union[
         {{ operation.response_type }},
         Coroutine[Any, Any, {{ operation.response_type }}],

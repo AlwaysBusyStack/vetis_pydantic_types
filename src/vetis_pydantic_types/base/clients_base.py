@@ -146,14 +146,14 @@ class VetisClient:
             timeout=self.timeout
         ) as client:
             response = await client.post(uri, content=xml_payload, headers=headers)
-            self._process_http_error(response)
-
-            content = response.content
 
         self.logger.debug(
             '[ASYNC] Получен ответ от ВетИС.API:\n%s',
             self._xml_to_str(ET.XML(response.content.decode('utf-8'))),
         )
+
+        self._process_http_error(response)
+        content = response.content
 
         result = self.parser.from_bytes(content, output_type, self.service.ns_map)
         self._check_fault(result)
@@ -233,7 +233,7 @@ class VetisAMSClient(VetisClient):
         issue_date: Optional[XmlDateTime] = None,
         **headers,
     ) -> BaseModel:
-        """Отправляет заявку и возвращает ID."""
+        """Отправляет заявку."""
         request_data = {
             'api_key': self.api_key,
             'application': {

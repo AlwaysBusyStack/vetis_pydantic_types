@@ -104,3 +104,5 @@ class EnterpriseClient(VetisRegistryClient):
             request=data,
             **headers,
         )
+
+test = DictionaryServicePortTypeGetDiseaseByGuid

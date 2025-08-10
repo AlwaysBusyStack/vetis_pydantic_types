@@ -1,7 +1,7 @@
 from vetis_pydantic_types.base import (
     VetisAMSService,
     VetisCircuitEnum,
-    VetisDictionaryService,
+    VetisRegistryService,
 )
 from vetis_pydantic_types.mercury.constants import (
     AMS_NS_PREFIXES,
@@ -28,7 +28,6 @@ from vetis_pydantic_types.mercury.constants import (
 )
 
 # Сервисы работы с заявками компонента Меркурий
-# MercuryApplicationRequest
 ams_productive_service = VetisAMSService(
     component_name=COMPONENT_NAME,
     verbose_name=AMS_VERBOSE_NAME,
@@ -56,7 +55,7 @@ ams_test_service = VetisAMSService(
 
 # Справочные сервисы компонента Меркурий
 # Сервисы получения справочной информации
-dictionary_productive_service = VetisDictionaryService(
+dictionary_productive_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=DICTIONARY_VERBOSE_NAME,
     version=VERSION,
@@ -67,7 +66,7 @@ dictionary_productive_service = VetisDictionaryService(
     api_port=PROD_API_PORT,
     split_circuit_types=SPLIT_CIRCUIT_TYPES,
 )
-dictionary_test_service = VetisDictionaryService(
+dictionary_test_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=DICTIONARY_VERBOSE_NAME,
     version=VERSION,
@@ -80,7 +79,7 @@ dictionary_test_service = VetisDictionaryService(
 )
 
 # Сервисы получения реестра хозяйствующих субъектов и предприятий (Цербер)
-enterprise_productive_service = VetisDictionaryService(
+enterprise_productive_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=ENTERPRISE_VERBOSE_NAME,
     version=VERSION,
@@ -91,7 +90,7 @@ enterprise_productive_service = VetisDictionaryService(
     api_port=PROD_API_PORT,
     split_circuit_types=SPLIT_CIRCUIT_TYPES,
 )
-enterprise_test_service = VetisDictionaryService(
+enterprise_test_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=ENTERPRISE_VERBOSE_NAME,
     version=VERSION,
@@ -104,7 +103,7 @@ enterprise_test_service = VetisDictionaryService(
 )
 
 # Сервисы получения адресной справочной информации (Икар)
-ikar_productive_service = VetisDictionaryService(
+ikar_productive_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=IKAR_VERBOSE_NAME,
     version=VERSION,
@@ -115,7 +114,7 @@ ikar_productive_service = VetisDictionaryService(
     api_port=PROD_API_PORT,
     split_circuit_types=SPLIT_CIRCUIT_TYPES,
 )
-ikar_test_service = VetisDictionaryService(
+ikar_test_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=IKAR_VERBOSE_NAME,
     version=VERSION,
@@ -128,7 +127,7 @@ ikar_test_service = VetisDictionaryService(
 )
 
 # Сервисы получения реестра категорий продукции
-product_productive_service = VetisDictionaryService(
+product_productive_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=PRODUCT_VERBOSE_NAME,
     version=VERSION,
@@ -139,7 +138,7 @@ product_productive_service = VetisDictionaryService(
     api_port=PROD_API_PORT,
     split_circuit_types=SPLIT_CIRCUIT_TYPES,
 )
-product_test_service = VetisDictionaryService(
+product_test_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=PRODUCT_VERBOSE_NAME,
     version=VERSION,
@@ -152,7 +151,7 @@ product_test_service = VetisDictionaryService(
 )
 
 # Сервисы проверки благополучия регионов и получения правил регионализации
-regionalization_productive_service = VetisDictionaryService(
+regionalization_productive_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=REGIONALIZATION_VERBOSE_NAME,
     version=VERSION,
@@ -163,7 +162,7 @@ regionalization_productive_service = VetisDictionaryService(
     api_port=PROD_API_PORT,
     split_circuit_types=SPLIT_CIRCUIT_TYPES,
 )
-regionalization_test_service = VetisDictionaryService(
+regionalization_test_service = VetisRegistryService(
     component_name=COMPONENT_NAME,
     verbose_name=REGIONALIZATION_VERBOSE_NAME,
     version=VERSION,

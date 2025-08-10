@@ -49,7 +49,7 @@ class VetisAMSService(BaseVetisService):
         self.service_id = service_id
 
 
-class VetisDictionaryService(BaseVetisService):
+class VetisRegistryService(BaseVetisService):
     """Сервис по работе со справочной системой."""
 
     _operations: Optional[Tuple[Type[RegistryOperation], ...]]
