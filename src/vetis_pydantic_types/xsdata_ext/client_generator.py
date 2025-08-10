@@ -361,30 +361,60 @@ class VetisClientGenerator(AbstractGenerator):
                 self.import_patterns[services_module][test_service_var] = test_service_var
                 self.import_patterns[services_module][production_service_var] = production_service_var
 
-        # Добавляем импорты типов для компонента
+        # Добавляем импорты модулей операций для компонента
+        operation_modules = set()
         for cls in classes:
             meta = cls.meta
             if meta['component_name'] == component_name:
-                test_service_instance = meta['test_service_instance']
-                is_types_splited = test_service_instance.split_circuit_types
+                pilot_module = meta['pilot_module']
+                product_module = meta['product_module']
+                pilot_module_name = meta['pilot_module_name']
+                product_module_name = meta['product_module_name']
 
-                types_str = f"vetis_pydantic_types.{component_name}.types"
-                if is_types_splited:
-                    test_types_str = f'{types_str}.{VetisCircuitEnum.TEST.value}'
-                    prod_types_str = f'{types_str}.{VetisCircuitEnum.PRODUCTIVE.value}'
+                if pilot_module:
+                    operation_modules.add((pilot_module, pilot_module_name))
+                if product_module:
+                    operation_modules.add((product_module, product_module_name))
 
-                    for types_module in [test_types_str, prod_types_str]:
-                        module = importlib.import_module(types_module)
-                        if hasattr(module, '__all__'):
-                            self.import_patterns[types_module] = {
-                                type_: type_ for type_ in module.__all__
-                            }
-                else:
-                    module = importlib.import_module(types_str)
-                    if hasattr(module, '__all__'):
-                        self.import_patterns[types_str] = {
-                            type_: type_ for type_ in module.__all__
-                        }
+        # Добавляем импорты модулей операций с алиасами
+        for module_path, alias in operation_modules:
+            self.import_patterns[module_path] = {'__module__': alias}
+
+        # Добавляем импорты типов данных для компонента
+        self._add_types_imports(component_name)
+
+    def _add_types_imports(self, component_name: str):
+        """Добавляет импорты типов данных из модулей, не содержащих pilot/production."""
+        types_package = f"vetis_pydantic_types.{component_name}.types"
+
+        # Получаем пакет types
+        component_types = importlib.import_module(types_package)
+
+        # Сканируем все модули в пакете types
+        for _, module_name, _ in pkgutil.iter_modules(component_types.__path__):
+            # Пропускаем модули с pilot или production в имени
+            if 'pilot' in module_name.lower() or 'production' in module_name.lower():
+                continue
+
+            full_module_name = f"{types_package}.{module_name}"
+            module = importlib.import_module(full_module_name)
+
+            # Собираем публичные типы из модуля
+            if hasattr(module, '__all__'):
+                # Используем __all__ если есть
+                public_types = module.__all__
+            else:
+                # Иначе собираем все публичные атрибуты (не начинающиеся с _)
+                public_types = [
+                    name for name in dir(module)
+                    if not name.startswith('_') and not name.islower()
+                ]
+
+            # Добавляем типы в импорты
+            if public_types:
+                self.import_patterns[full_module_name] = {
+                    type_name: type_name for type_name in public_types
+                }
 
     def _setup_filters(self):
         """Регистрация фильтров."""
@@ -432,7 +462,9 @@ class VetisClientGenerator(AbstractGenerator):
             ]
 
             if len(names) == 1 and names[0] == "__module__":
-                imports.append(f"import {library}")
+                # Импорт модуля с алиасом
+                alias = list(types.values())[0]  # Получаем значение алиаса
+                imports.append(f"import {library} as {alias}")
             elif names:
                 imports.append(f"from {library} import {', '.join(names)}")
 
